@@ -1,8 +1,29 @@
 import Vue from 'vue'
 import App from './App.vue'
+import router from './router'
+import store from './store'
+import axios from 'axios'
+
+import './assets/css/global.less'
+import './assets/font/iconfont.css'
+const instance = axios.create({
+  baseURL: 'http://127.0.0.1:8888/api/',
+})
+Vue.prototype.$http = instance
+
+Vue.prototype.$echarts = window.echarts
 
 Vue.config.productionTip = false
 
+import SocketService from './utils/websocket_server.js'
+// console.log(SocketService)
+SocketService.Instance.connect()
+
+Vue.prototype.$socket = SocketService.Instance
+
 new Vue({
-  render: h => h(App),
+  router,
+  store,
+  render: (h) => h(App),
 }).$mount('#app')
+// export default Vue
