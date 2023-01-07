@@ -17,9 +17,19 @@ export default {
       timer: null,
     }
   },
+  created() {
+    // this.initChart()
+    // this.getData()
+    this.$socket.registerCallback('stockData', this.getData)
+  },
   mounted() {
     this.initChart()
-    this.getData()
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'stockData',
+      chartName: 'stock',
+      value: '',
+    })
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
     this.startInterVal()
@@ -29,6 +39,7 @@ export default {
     window.clearInterval(this.timer)
     this.chartInstance.off('mouseover')
     this.chartInstance.off('mouseout')
+    this.$socket.unRegisterCallback('stockData')
   },
   methods: {
     initChart() {
@@ -48,11 +59,11 @@ export default {
         this.startInterVal()
       })
     },
-    async getData() {
-      const { data: res } = await this.$http.get('/stock')
+    async getData(res) {
+      // const { data: res } = await this.$http.get('/stock')
       this.allData = res
       this.updateChart()
-      console.log(res)
+      // console.log(res)
     },
     updateChart() {
       const centerArr = [

@@ -8,7 +8,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import axios from 'axios'
+// import axios from 'axios'
 import { getProvinceMapInfo } from '../utils/map_utils.js'
 export default {
   data() {
@@ -16,6 +16,7 @@ export default {
       chartInstance: null,
       allData: null,
       mapData: {},
+      chinaMapData: null,
     }
   },
   created() {
@@ -40,15 +41,21 @@ export default {
   methods: {
     async initChart() {
       this.chartInstance = this.$echarts.init(this.$refs.map_ref, this.theme)
-      const { data: res } = await axios.get(
-        'http://localhost:8080/static/map/china.json'
-      )
-      this.$echarts.registerMap('china', res)
+      if (!this.chinaMapData) {
+        const { data: res } = await this.$http.get('/china')
+        // const { data: res } = await axios.get(
+        //   'http://localhost:8080/static/map/china.json'
+        // )
+        this.chinaMapData = res
+        this.$echarts.registerMap('china', this.chinaMapData)
+      }
+
       // console.log(res)
       const initOption = {
         title: {
           text: '▎商家分布与销量排行',
-          top: '4%',
+          top: 20,
+          left: 20,
         },
 
         geo: {
@@ -75,7 +82,7 @@ export default {
         const { key, path } = getProvinceMapInfo(name)
         // console.log(path)
         if (!this.mapData[key]) {
-          const { data: res } = await axios.get(`http://localhost:8080${path}`)
+          const { data: res } = await this.$http.get(path)
           console.log(res)
           this.mapData[key] = res
           this.$echarts.registerMap(key, res)
@@ -112,7 +119,12 @@ export default {
       const legendArr = this.allData.map((item) => item.name)
       const dataOption = {
         legend: {
-          data: legendArr,
+          left: '5%',
+          bottom: '5%',
+          // 图例的方向
+          orient: 'verticle',
+          data: legendArr.reverse(),
+          // data: legendArr,
         },
         series: seriesArr,
       }
@@ -125,9 +137,6 @@ export default {
           textStyle: {
             fontSize: titleFontSize,
           },
-
-          top: 20,
-          left: 20,
         },
         legend: {
           itemWidth: titleFontSize / 2,
@@ -158,8 +167,9 @@ export default {
       // console.log(333)
       this.chartInstance.dispose()
       this.initChart()
-      this.updateChart()
+
       this.screenAdapter()
+      this.updateChart()
     },
   },
 }
